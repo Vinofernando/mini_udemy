@@ -23,6 +23,15 @@ export const sendResetPasswordEmail = async (toEmail, resetLink) => {
         from: process.env.EMAIL_USER,
         to: toEmail,
         subject: "Reset Password",
-        html: `<p>Klink link berikut untuk reset password:</p><a href= "${resetLink}>${resetLink}</a>`
+        html: `<p>Klink link berikut untuk reset password:</p><a href= "${resetLink}">${resetLink}</a>`
+    })
+}
+
+export const sendSuccessResetPassword = async (toEmail) => {
+    await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: toEmail,
+        subject: "Reset password berhasil",
+        html: "<p>Berhasil mereset password</p>"
     })
 }

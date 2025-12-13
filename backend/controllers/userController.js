@@ -17,3 +17,20 @@ export const forgotPassword = async (req, res, next) => {
         next(err)
     }
 }
+
+export const getToken = async (req, res, next) => {
+    try{
+        const data = await userService.getResetPasswordLink(req.params.token)
+        res.json(data)
+    } catch (err) { next(err) }
+}
+
+export const resetPassword = async (req, res, next) => {
+    console.log(req.body)
+    try{
+        const data = await userService.resetPassword(req.body);
+        res.json(data)
+    } catch (err) {
+        next(err)
+    }
+}

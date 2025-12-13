@@ -30,6 +30,7 @@ export const loginUser = async ({email, password}) => {
     const user = userResult.rows[0]
     const validPassword = await bcrypt.compare(password, user.user_password)
     if(!validPassword) throw { status : 400, message: "Password salah"}
+    if(!user.is_verified) throw { status: 403, message: "Email belum di verifikasi"}
     
     const token = jwt.sign({ id: user.user_id, username: user.user_name, email: user.user_email}, JWT_SECRET, {expiresIn: "1h"})
 

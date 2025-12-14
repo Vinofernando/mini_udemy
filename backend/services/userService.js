@@ -71,3 +71,17 @@ export const resetPassword = async({token, newPassword}) => {
     await sendSuccessResetPassword(user.user_email)
     return { message: "Password berhasil direset."}
 }
+
+export const updateUserRole = async({email, updatedRole}) => {
+  if(!email || !updatedRole) throw ({status: 400, message: "All field required"})
+
+  const roleOption = ['student', 'instructor', 'admin']
+  const availableRole = roleOption.includes(updatedRole)
+  if(!availableRole) throw ({status: 400, message: "Unavailable role"})
+
+  await pool.query(
+    `UPDATE users SET role = $1 WHERE user_email = $2` , [updatedRole, email]
+  )
+
+  return {message: "Data successfully updated"}
+}

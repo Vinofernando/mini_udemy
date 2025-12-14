@@ -34,3 +34,11 @@ export const resetPassword = async (req, res, next) => {
         next(err)
     }
 }
+
+export const updateUserRole = async(req, res, next) => {
+    console.log(req.user.id, req.user.role, req.body, req.user)
+    try{
+        const result = await userService.updateUserRole(req.body)
+        res.json(result)
+    } catch (err) { next(err) }
+}

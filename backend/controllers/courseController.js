@@ -34,3 +34,10 @@ export const enrollCourse = async (req, res, next) => {
         res.json(result.rows)
     } catch (err) { next(err) }
 }
+
+export const getLesson = async(req, res, next) => {
+    try{
+        const result = await courseService.getLesson(req.params.courseId)
+        res.json(result.rows)
+    } catch (err) { next(err) }
+}

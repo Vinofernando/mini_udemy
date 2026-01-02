@@ -32,11 +32,11 @@ export const loginUser = async ({email, password}) => {
     if(!validPassword) throw { status : 400, message: "Password salah"}
     if(!user.is_verified) throw { status: 403, message: "Email belum di verifikasi"}
     
-    const token = jwt.sign({ id: user.user_id, username: user.user_name, email: user.user_email}, JWT_SECRET, {expiresIn: "1h"})
+    const token = jwt.sign({ id: user.user_id, username: user.user_name, email: user.user_email, role: user.role}, JWT_SECRET, {expiresIn: "1h"})
 
     return{
         message: "Berhasil login",
         token,
-        user: { id: user.user_id, username: user.user_name, email: user.user_email}
+        user: { id: user.user_id, username: user.user_name, email: user.user_email, role: user.role}
     }
 }

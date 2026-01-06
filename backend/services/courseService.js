@@ -61,3 +61,46 @@ export const getLesson = async(courseId) => {
 
     return result
 }
+
+export const markCompleteLesson = async({courseId, lessonId, userId}) => {
+    if(!courseId) throw ({status: 400, message: "Course id required"})
+    if(!lessonId) throw ({status: 400, message: "lesson id id required"})
+
+    const lessonCourse = await pool.query(
+        `SELECT * FROM lessons WHERE course_id = $1 AND lesson_id = $2`, [courseId, lessonId]
+    )
+
+    if(lessonCourse.rows.length === 0) throw({status: 400, message: "this lesson is not from the course"})
+
+     return await pool.query(
+        `INSERT INTO learning_progress(user_id, lesson_id) VALUES($1, $2) RETURNING *`, [userId, lessonId]
+    )
+
+}
+
+export const getProgress = async({userId, courseId}) => {
+    const totalLesson = await pool.query(
+        `SELECT COUNT(lesson_id) FROM lessons WHERE course_id = $1`, [courseId]
+    )
+    const completedLessons = await pool.query(
+        `
+        SELECT COUNT(learning_progress_id)
+        FROM learning_progress
+        JOIN lessons ON
+        learning_progress.lesson_id = lessons.lesson_id
+        WHERE learning_progress.user_id = $1 AND lessons.course_id = $2
+        `, [userId, courseId]
+    )
+    
+    if(Number(totalLesson.rows[0].count) === 0) throw({status: 400, message: "Lesson undefined"})
+    
+    const total = Number(totalLesson.rows[0].count)
+    const completed = Number(completedLessons.rows[0].count)
+    const progressPercent = completed / total * 100
+    
+    return ({
+        totalLesson: total,
+        completedLessons: completed,
+        progressPercent: progressPercent
+    })
+}

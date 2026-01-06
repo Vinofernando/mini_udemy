@@ -41,3 +41,25 @@ export const getLesson = async(req, res, next) => {
         res.json(result.rows)
     } catch (err) { next(err) }
 }
+
+export const markCompleteLesson = async(req, res, next) => {
+    try{
+        const result = await courseService.markCompleteLesson({
+            courseId: req.params.courseId,
+            lessonId: req.params.lessonId,
+            userId: req.user.id
+        })
+        res.json(result.rows)
+    } catch (err) {next(err)}
+}
+
+export const getProgress = async(req, res, next) => {
+    try{
+        const result = await courseService.getProgress({
+            userId: req.user.id,
+            courseId: req.params.courseId
+        })
+
+        res.json(result)
+    } catch (err) { next(err) }
+}

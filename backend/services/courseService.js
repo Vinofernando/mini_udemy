@@ -30,6 +30,25 @@ export const createCourse = async ({title, description, price, thumbnail, create
     return result
 }
 
+export const creatLesson = async( {courseId, title, content}) => {
+    const existedLesson = await pool.query(
+        `SELECT MAX(order_number) FROM lessons WHERE course_id = $1`, [courseId]
+    )
+
+    const maxOrder = existedLesson.rows[0].max
+    const orderNumber = maxOrder === null ? 1 : Number(maxOrder) + 1
+    if(existedLesson.rows[0].max === null) return(
+        await pool.query(
+            `INSERT INTO lessons(course_id, title, content, order_number) VALUES($1, $2, $3, 1) RETURNING *`, [courseId, title, content]
+        )
+    )
+
+    const autoOrderNumber = await pool.query(
+        `INSERT INTO lessons(course_id, title, content, order_number) VALUES($1, $2, $3, $4) RETURNING *`, [courseId, title, content, orderNumber]
+    )
+    
+    return autoOrderNumber
+}
 export const enrollCourse = async (userId, courseId) => {
     if(!courseId) throw ({status: 400, message: "Cant find course id"})
 

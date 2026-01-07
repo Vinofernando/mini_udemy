@@ -28,6 +28,17 @@ export const addCourse = async (req, res, next) => {
     } catch (err) { next(err) }
 }
 
+export const creatLesson = async(req, res, next) => {
+    try{
+        const result = await courseService.creatLesson({
+            courseId: req.params.courseId,
+            title: req.body.title,
+            content: req.body.content
+        })
+        res.json(result.rows)
+    } catch (err) { next(err) }
+}
+
 export const enrollCourse = async (req, res, next) => {
     try{
         const result = await courseService.enrollCourse(req.user.id, req.params.courseId)

@@ -74,3 +74,45 @@ export const getProgress = async(req, res, next) => {
         res.json(result)
     } catch (err) { next(err) }
 }
+
+export const deleteLesson = async(req, res, next) => {
+    try{
+        const result = await courseService.deleteLesson({
+            courseId: req.params.courseId,
+            lessonId: req.params.lessonId
+        })
+
+        res.json(result)
+    } catch (err) { next(err) }
+}
+
+export const updateLessonOrder= async(req, res, next) => {
+    try{
+        const result = await courseService.updateLessonOrder({
+            courseId: req.params.courseId,
+            lessonId: req.params.lessonId,
+            newOrder: Number(req.body.newOrder)
+        })
+        res.json(result)
+    } catch(err) { next(err) }
+}
+
+export const publishLesson = async(req, res, next) => {
+    try{
+        const result = await courseService.publishLesson({
+            courseId: req.params.courseId,
+            lessonId: req.params.lessonId
+        })
+        res.json(result)
+    } catch (err) { next(err) }
+}
+
+export const unpublishLesson = async(req, res, next) => {
+    try{
+        const result = await courseService.unpublishLesson({
+            courseId: req.params.courseId,
+            lessonId: req.params.lessonId
+        })
+        res.json(result)
+    } catch (err) { next(err) }
+}

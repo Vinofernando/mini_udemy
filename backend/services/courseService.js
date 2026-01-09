@@ -123,3 +123,143 @@ export const getProgress = async({userId, courseId}) => {
         progressPercent: progressPercent
     })
 }
+
+export const deleteLesson = async({courseId, lessonId}) => {
+    const client = await pool.connect()
+    try{
+        await client.query("BEGIN")
+
+        const lesson = await client.query(
+            `SELECT order_number FROM lessons WHERE course_id = $1 AND lesson_id = $2`, [courseId, lessonId]
+        )
+
+        if(lesson.rows.length === 0) throw({status:404, message: "Lesson not found"})
+
+        const deleteOrder = lesson.rows[0].order_number
+
+        await client.query(
+            `DELETE FROM learning_progress WHERE lesson_id = $1`, [lessonId]
+        )
+
+        await client.query(
+            `DELETE FROM lessons WHERE lesson_id = $1 AND course_id = $2`, [lessonId, courseId]
+        )
+
+        await client.query(
+            `UPDATE lessons SET order_number = order_number - 1 WHERE course_id = $1 AND order_number > $2`, [courseId, deleteOrder]
+        )
+
+        await client.query("COMMIT")
+        return{message: "Lesson deleted and reorder successfully"}
+    }  catch(err) {
+        await client.query("ROLLBACK")
+        throw err
+    } finally {
+        client.release()
+    }
+}
+
+export const updateLessonOrder = async ({ courseId, lessonId, newOrder }) => {
+  const client = await pool.connect()
+
+  try {
+    await client.query("BEGIN")
+
+    // 1️⃣ Ambil order saat ini
+    const lesson = await client.query(
+      `SELECT order_number FROM lessons
+       WHERE course_id = $1 AND lesson_id = $2`,
+      [courseId, lessonId]
+    )
+
+    if (lesson.rows.length === 0) {
+      throw { status: 404, message: "Lesson not found" }
+    }
+
+    const currentOrder = lesson.rows[0].order_number
+
+    if (currentOrder === newOrder) {
+      throw { message: "Lesson order unchanged" }
+    }
+
+    // 2️⃣ Validasi max order
+    const maxOrderRes = await client.query(
+      `SELECT MAX(order_number) FROM lessons WHERE course_id = $1`,
+      [courseId]
+    )
+
+    const maxOrder = Number(maxOrderRes.rows[0].max)
+
+    if (newOrder < 1 || newOrder > maxOrder) {
+      throw { status: 400, message: "Invalid order number" }
+    }
+
+    await client.query(
+        `UPDATE lessons SET order_number = 0 WHERE lesson_id = $1`, [lessonId]
+    )
+
+    // 3️⃣ Geser lesson lain
+    if (newOrder < currentOrder) {
+      // Naik
+      await client.query(
+        `UPDATE lessons
+         SET order_number = order_number + 1
+         WHERE course_id = $1
+         AND order_number >= $2
+         AND order_number < $3`,
+        [courseId, newOrder, currentOrder]
+      )
+    } else {
+      // Turun
+      await client.query(
+        `UPDATE lessons
+         SET order_number = order_number - 1
+         WHERE course_id = $1
+         AND order_number > $2
+         AND order_number <= $3`,
+        [courseId, currentOrder, newOrder]
+      )
+    }
+
+    // 4️⃣ Update lesson target
+    await client.query(
+      `UPDATE lessons
+       SET order_number = $1
+       WHERE lesson_id = $2`,
+      [newOrder, lessonId]
+    )
+
+    await client.query("COMMIT")
+
+    return { message: "Lesson order updated successfully" }
+
+  } catch (err) {
+    await client.query("ROLLBACK")
+    throw err
+  } finally {
+    client.release()
+  }
+}
+
+export const publishLesson = async({courseId, lessonId}) => {
+    const result = await pool.query(
+        `UPDATE lessons 
+        SET status = 'published' 
+        WHERE course_id = $1 AND lesson_id = $2 
+        RETURNING lesson_id, status`, [courseId, lessonId]
+    )
+
+    if(result.rows.length === 0) throw ({status: 404, message: "Lesson not found"})
+
+    return result.rows[0]
+}
+
+export const unpublishLesson = async({courseId, lessonId}) => {
+    const result = await pool.query(
+        `UPDATE lessons SET status = 'draft' WHERE course_id = $1 AND lesson_id = $2 RETURNING lesson_id, status`, [courseId, lessonId]
+    )
+
+    if(result.rows.length === 0) throw ({status: 404, message: "Lesson not found"})
+
+    return result.rows[0]
+}

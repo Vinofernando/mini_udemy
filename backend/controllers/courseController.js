@@ -1,8 +1,8 @@
 import * as courseService from "../services/courseService.js"
 
-export const getCourse = async(req, res, next) => {
+export const getPublicCourse = async(req, res, next) => {
     try{
-        const result = await courseService.getCourse()
+        const result = await courseService.getPublicCourse()
         res.json(result)
     } catch (err) { next(err) }
 }
@@ -46,9 +46,16 @@ export const enrollCourse = async (req, res, next) => {
     } catch (err) { next(err) }
 }
 
-export const getLesson = async(req, res, next) => {
+export const getPublicLesson = async(req, res, next) => {
     try{
-        const result = await courseService.getLesson(req.params.courseId)
+        const result = await courseService.getPublicLesson(req.params.courseId)
+        res.json(result.rows)
+    } catch (err) { next(err) }
+}
+
+export const getUserLesson = async(req, res, next) => {
+    try{
+        const result = await courseService.getUserLesson(req.params.courseId)
         res.json(result.rows)
     } catch (err) { next(err) }
 }
@@ -115,4 +122,30 @@ export const unpublishLesson = async(req, res, next) => {
         })
         res.json(result)
     } catch (err) { next(err) }
+}
+
+export const publishCourse = async(req, res, next) => {
+    try{
+        const result = await courseService.publishCourse(req.params.courseId)
+        res.json(result)
+    } catch (err) { next(err) }
+}
+
+export const unpublishCourse = async(req, res, next) => {
+    try{
+        const result = await courseService.publishCourse(req.params.courseId)
+        res.json(result)
+    } catch (err) { next(err) }
+}
+
+export const getSingleLesson = async(req, res, next) => {
+    console.log(req.user)
+    try{
+        const lesson = await courseService.getSingleLesson({
+            lessonId: req.params.lessonId,
+            userId: req.user?.id || null
+        })
+
+        res.json(lesson)
+    } catch(err) { next(err) }
 }
